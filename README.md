@@ -1,2 +1,2 @@
 ﻿# tablokhan-ocr
-Ppersian OCR Project
+Persian OCR Project
