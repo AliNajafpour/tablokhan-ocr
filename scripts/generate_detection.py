@@ -10,9 +10,9 @@ from bidi.algorithm import get_display
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).resolve().parent.parent
 
-سسسسسسسسسسسسسسسس
+
 IMAGE_COUNT = 100
 IMAGE_SIZE = (1280, 960)
 TEXTS_PER_IMAGE = (1, 10)
