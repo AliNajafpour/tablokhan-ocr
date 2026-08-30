@@ -4,12 +4,13 @@ Persian text detection and recognition using Hezar CRAFT and CRNN models.
 
 ## Run locally
 
-Use Python 3.11, install the runtime packages, and place the model files as described in [`models/README.md`](models/README.md).
+Use Python 3.11. The download script fetches the two required Hezar models and saves them under `models/`.
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
+python scripts/download_models.py
 python -m app.api
 ```
 

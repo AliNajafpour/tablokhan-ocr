@@ -1,6 +1,12 @@
 # Model locations
 
-Model weights are intentionally not stored in Git. Put the extracted Hezar models here:
+Model weights are intentionally not stored in Git. Download both models with:
+
+```powershell
+python scripts/download_models.py
+```
+
+The script creates:
 
 ```text
 models/
