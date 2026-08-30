@@ -11,7 +11,7 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python scripts/download_models.py
-python -m app.api
+python main.py
 ```
 
 Open <http://127.0.0.1:8000> or send an image to `POST /ocr`.
@@ -19,7 +19,8 @@ Open <http://127.0.0.1:8000> or send an image to `POST /ocr`.
 ## Project layout
 
 ```text
-app/         OCR API and Hezar inference pipeline
+main.py      OCR API and Hezar inference pipeline
+index.html   upload page
 models/      local model locations; weights are not committed
 scripts/     dataset generation helpers
 notebooks/   preprocessing and PaddleOCR training notebooks

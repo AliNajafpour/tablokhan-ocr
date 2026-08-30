@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from app.boxes import reading_order
+from main import reading_order
 
 
 class ReadingOrderTest(unittest.TestCase):

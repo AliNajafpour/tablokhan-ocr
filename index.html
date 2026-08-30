@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<meta charset="utf-8">
+<title>Persian OCR</title>
+<style>
+body{font-family:Tahoma;max-width:900px;margin:auto;padding:20px;background:#111;color:#eee}
+form,section{background:#1b1b1b;padding:16px;margin:12px 0;border-radius:10px}
+button{padding:7px 16px} img{max-width:100%} li{margin:7px} .muted{color:#aaa}
+</style>
+<h1>Persian OCR</h1>
+<form id="form">
+  <input id="file" type="file" accept="image/*" required>
+  <button>Run</button>
+</form>
+<section>
+  <p id="meta" class="muted"></p>
+  <img id="image">
+  <ol id="texts"><li>Choose an image.</li></ol>
+</section>
+<script>
+const get=id=>document.getElementById(id),form=get("form"),file=get("file"),texts=get("texts"),meta=get("meta"),image=get("image")
+form.onsubmit=async event=>{
+  event.preventDefault()
+  texts.innerHTML="<li>Processing…</li>"
+  const data=new FormData()
+  data.append("file",file.files[0])
+  try{
+    const response=await fetch("/ocr",{method:"POST",body:data})
+    const result=await response.json()
+    if(!response.ok)throw Error(result.detail||response.status)
+    meta.textContent=`blocks: ${result.n_blocks} | words: ${result.n_boxes} | ${result.elapsed_ms} ms`
+    image.src="data:image/jpeg;base64,"+result.annotated_jpeg_b64
+    texts.innerHTML=result.items.map(item=>`<li>${item.text||"(empty)"}</li>`).join("")||"<li>No text found.</li>"
+  }catch(error){texts.innerHTML=`<li>${error}</li>`}
+}
+</script>
+</html>
