@@ -4,7 +4,7 @@ Persian text detection with PP-OCRv6 medium and recognition with selectable Heza
 
 ## Run locally
 
-Use Python 3.11. The download script saves every model under `models/`.
+Use Python 3.11. The download script fetches the default Paddle detector and Hezar recognizer into `models/`.
 
 ```powershell
 python -m venv .venv

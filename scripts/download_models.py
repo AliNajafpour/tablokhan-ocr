@@ -11,6 +11,6 @@ snapshot_download("PaddlePaddle/PP-OCRv6_medium_det", local_dir=detector,
                   allow_patterns=["inference.json", "inference.pdiparams", "inference.yml"])
 shutil.rmtree(detector / ".cache", ignore_errors=True)
 Model.load("hezarai/crnn-base-fa-v2",
-           save_path=str(ROOT / "models" / "recognition" / "crnn-base-fa-v2"))
+           save_path=str(ROOT / "models" / "recognition"))
 
 print("Models saved in", ROOT / "models")
