@@ -1,8 +1,12 @@
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import numpy as np
 
-from main import reading_order
+from detection import MODEL_NAME as DETECTION_MODEL, reading_order
+from main import models
+from recognition import available_models
 
 
 class ReadingOrderTest(unittest.TestCase):
@@ -13,6 +17,20 @@ class ReadingOrderTest(unittest.TestCase):
             np.array([[10, 10], [30, 10], [30, 30], [10, 30]], dtype=np.float32),
         ]
         self.assertEqual(reading_order(boxes), [1, 2, 0])
+
+
+class ModelDiscoveryTest(unittest.TestCase):
+    def test_only_paddle_detector_is_available(self):
+        self.assertEqual(models()["detection"], [DETECTION_MODEL])
+
+    def test_default_and_named_models(self):
+        with TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / "recognition" / "model_config.yaml").parent.mkdir()
+            (root / "recognition" / "model_config.yaml").touch()
+            (root / "recognition" / "ptdr").mkdir()
+            (root / "recognition" / "ptdr" / "model_config.yaml").touch()
+            self.assertEqual(list(available_models(root / "recognition")), ["default", "ptdr"])
 
 
 if __name__ == "__main__":

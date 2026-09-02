@@ -1,5 +1,8 @@
 numpy>=1.24,<2
 Pillow>=10
+arabic-reshaper>=3
+python-bidi>=0.4
+opencv-contrib-python==4.6.0.66
 opencv-python-headless==4.6.0.66
 fastapi>=0.110
 uvicorn>=0.27
@@ -7,3 +10,5 @@ python-multipart>=0.0.9
 hezar>=0.40
 torch>=2.2
 torchvision>=0.15
+paddlepaddle==3.3.0
+paddleocr==3.7.0

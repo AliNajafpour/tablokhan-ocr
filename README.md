@@ -1,10 +1,10 @@
 # Persian Scene-Text OCR
 
-Persian text detection and recognition using Hezar CRAFT and CRNN models.
+Persian text detection with PP-OCRv6 medium and recognition with selectable Hezar CRNN models.
 
 ## Run locally
 
-Use Python 3.11. The download script fetches the two required Hezar models and saves them under `models/`.
+Use Python 3.11. The download script saves every model under `models/`.
 
 ```powershell
 python -m venv .venv
@@ -15,11 +15,17 @@ python main.py
 ```
 
 Open <http://127.0.0.1:8000> or send an image to `POST /ocr`.
+The page can run full OCR, detection only, or recognition only. Recognition-only expects a cropped text image.
+
+Detection uses `models/detection/PP-OCRv6_medium_det/`. Recognition lists every
+Hezar model stored directly in `models/recognition/` or one of its subfolders.
 
 ## Project layout
 
 ```text
-main.py      OCR API and Hezar inference pipeline
+main.py      API and combined OCR pipeline
+detection.py PP-OCRv6 text detection
+recognition.py Hezar text recognition
 index.html   upload page
 models/      local model locations; weights are not committed
 scripts/     dataset generation helpers
