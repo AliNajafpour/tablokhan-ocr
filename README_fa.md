@@ -67,4 +67,4 @@ python3 -m uvicorn main:app --host 127.0.0.1 --port 8000
 - The nd: [![Telegram](https://img.shields.io/badge/Telegram-blue?style=flat-square&logo=Telegram&logoColor=white)](https://t.me/The_nd_Org) OR [![E-Mail](https://img.shields.io/badge/E--Mail-red?style=flat-square&logo=Gmail&logoColor=white)](mailto:the.nd.orgh@gmail.com)
 
 ### لایسنس
-MIT
+GPL-3.0

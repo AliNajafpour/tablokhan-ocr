@@ -66,4 +66,4 @@ Images with added detection boxes will be under `results/images` path. And if yo
 - The nd: [![Telegram](https://img.shields.io/badge/Telegram-blue?style=flat-square&logo=Telegram&logoColor=white)](https://t.me/The_nd_Org) OR [![E-Mail](https://img.shields.io/badge/E--Mail-red?style=flat-square&logo=Gmail&logoColor=white)](mailto:taha.naderi2008@gmail.com)
 
 ### License
-MIT
+GPL-3.0
