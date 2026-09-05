@@ -1,8 +1,7 @@
-import gc
 import tempfile
 from collections import Counter
 from pathlib import Path
-
+from hezar.models import Model
 import cv2
 import numpy as np
 import torch
@@ -10,25 +9,18 @@ from PIL import Image
 
 
 ROOT = Path(__file__).parent
-MODELS = ROOT / "models" / "recognition"
+_CANDIDATES = [ROOT / "models" / "recognition" / "default", ROOT / "models" / "recognition"]
+MODEL_PATH = next((p for p in _CANDIDATES if (p / "model_config.yaml").exists()), _CANDIDATES[0])
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-_model = None
-_model_name = None
 
-
-def available_models(root=MODELS):
-    models = {}
-    if (root / "model_config.yaml").is_file():
-        models["default"] = root
-    if root.exists():
-        models.update({path.parent.name: path.parent for path in root.glob("*/model_config.yaml")})
-    return models
-
+if torch.cuda.is_available():
+    torch.cuda.empty_cache()
+model = Model.load(str(MODEL_PATH), load_locally=True)
 
 def crop(image, quad):
     width = int(max(np.linalg.norm(quad[0] - quad[1]), np.linalg.norm(quad[2] - quad[3]), 8))
     height = int(max(np.linalg.norm(quad[0] - quad[3]), np.linalg.norm(quad[1] - quad[2]), 8))
-    target = np.float32([[0, 0], [width - 1, 0], [width - 1, height - 1], [0, height - 1]])
+    target = np.array([[0, 0], [width - 1, 0], [width - 1, height - 1], [0, height - 1]], dtype=np.float32)
     output = cv2.warpPerspective(image, cv2.getPerspectiveTransform(quad, target), (width, height))
     pad = max(1, int(height * 0.16))
     return cv2.copyMakeBorder(output, pad, pad, pad, pad, cv2.BORDER_REPLICATE)
@@ -67,25 +59,7 @@ def output_text(output):
     return "" if output is None else str(output)
 
 
-def load_model(name):
-    global _model, _model_name
-    from hezar.models import Model
-
-    models = available_models()
-    if name not in models:
-        raise ValueError(f"Unknown recognition model: {name}")
-    if _model_name != name:
-        _model = None
-        gc.collect()
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
-        _model = Model.load(str(models[name]))
-        _model_name = name
-    return _model
-
-
-def predict(images, model_name):
-    model = load_model(model_name)
+def predict(images):
     with tempfile.TemporaryDirectory() as folder:
         paths = []
         for index, image in enumerate(images):
@@ -100,14 +74,14 @@ def predict(images, model_name):
     return [output_text(output) for output in outputs]
 
 
-def recognize(image, quads, model_name="default"):
+def recognize(image, quads):
     if not quads:
         return []
     images = [enhance(crop(image, quad)) for quad in quads]
-    texts = predict(images, model_name)
+    texts = predict(images)
     retry = [index for index, text in enumerate(texts) if not text.strip() or garbage(text)]
     if retry:
-        alternatives = predict([binarize(images[index]) for index in retry], model_name)
+        alternatives = predict([binarize(images[index]) for index in retry])
         for index, text in zip(retry, alternatives):
             if text.strip() and not garbage(text):
                 texts[index] = text

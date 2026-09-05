@@ -1,5 +1,6 @@
 .venv/
 .venv1/
+.venvtst/
 .python/
 __pycache__/
 *.py[cod]
@@ -10,11 +11,13 @@ Synthdog-RTL/
 tmp/
 *.log
 
-models/**
 checkpoints/
 saved_models/
 exports/
 .ipynb_checkpoints/
-data/datasets/recognition_v3/
-data/datasets/hezar2/
-data/raw/PTDR/
+
+notebooks/
+scripts/
+data/
+tests/
+results/
