@@ -53,8 +53,7 @@ Open your internet browser of choice and go to [127.0.0.1:8000](http://127.0.0.1
 
 Using the *Browse...* button on webpage, choose your file(s) which you want to use *Tablo khan* on, and press on **تابلو را بخوان** button. Wait until the process completes.
 
-The results will be generated inside a .JSON file which can be found inside `results` folder.
-
+Images with added detection boxes will be under `results/images` path. And if you choose "Full OCR" mode, the results will be stored inside a JSON file which can be found inside `results` folder.
 ##
 
 ### Contact Us
