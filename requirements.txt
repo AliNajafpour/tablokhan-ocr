@@ -10,5 +10,5 @@ python-multipart>=0.0.9
 hezar>=0.40
 torch>=2.2
 torchvision>=0.15
-paddlepaddle==3.3.0
+paddlepaddle-gpu==3.3.0
 paddleocr==3.7.0

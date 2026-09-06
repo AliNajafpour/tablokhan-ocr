@@ -9,30 +9,25 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import HTMLResponse
 from PIL import Image
 
-from detection import MODEL_NAME as DETECTION_MODEL, available_models as detection_models, detect
-from recognition import available_models as recognition_models, recognize
+from detection import detect
+from recognition import recognize
 
 
 ROOT = Path(__file__).parent
 app = FastAPI(title="Persian OCR")
 
 
-def run_ocr(image, mode="ocr", detection_model=DETECTION_MODEL, recognition_model="default"):
+def run_ocr(image, mode="ocr"):
     if mode not in ("ocr", "detection", "recognition"):
         raise HTTPException(400, f"Unknown mode: {mode}")
-    if mode != "recognition" and detection_model not in detection_models():
-        raise HTTPException(400, f"Unknown detection model: {detection_model}")
-    if mode != "detection" and recognition_model not in recognition_models():
-        raise HTTPException(400, f"Unknown recognition model: {recognition_model}")
-
     started = time.perf_counter()
     if mode == "recognition":
         height, width = image.shape[:2]
         quads = [np.float32([[0, 0], [width - 1, 0], [width - 1, height - 1], [0, height - 1]])]
         scores = [None]
     else:
-        quads, scores = detect(image, detection_model)
-    texts = [""] * len(quads) if mode == "detection" else recognize(image, quads, recognition_model)
+        quads, scores = detect(image)
+    texts = [""] * len(quads) if mode == "detection" else recognize(image, quads)
     words = [{"text": text, "score": None if score is None else round(score, 4),
               "box": np.round(quad, 1).tolist()}
              for text, score, quad in zip(texts, scores, quads)]
@@ -66,21 +61,14 @@ def home():
                         headers={"Cache-Control": "no-store"})
 
 
-@app.get("/models")
-def models():
-    return {"detection": detection_models(), "recognition": list(recognition_models())}
-
-
 @app.post("/ocr")
-async def ocr(file: UploadFile = File(...), detection_model: str = Form(DETECTION_MODEL),
-              recognition_model: str = Form("default"), mode: str = Form("ocr")):
-    return run_ocr(read_image(await file.read()), mode, detection_model, recognition_model)
+async def ocr(file: UploadFile = File(...), mode: str = Form("ocr")):
+    return run_ocr(read_image(await file.read()), mode)
 
 
 @app.post("/ocr/json")
-async def ocr_json(file: UploadFile = File(...), detection_model: str = Form(DETECTION_MODEL),
-                   recognition_model: str = Form("default")):
-    result = run_ocr(read_image(await file.read()), "ocr", detection_model, recognition_model)
+async def ocr_json(file: UploadFile = File(...)):
+    result = run_ocr(read_image(await file.read()), "ocr")
     return {"imnames": [file.filename], "txt": [word["text"] for word in result["words"]],
             "wordBB": [[[point[0] for point in word["box"]], [point[1] for point in word["box"]]]
                        for word in result["words"]], "charBB": []}
