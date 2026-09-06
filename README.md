@@ -1,10 +1,10 @@
 # Tablo Khan (EN / [FA](https://github.com/AliNajafpour/tablokhan-ocr/blob/main/README_fa.md))
 
-**Tablo Khan** (*Lit. Board Reader*) is a persian OCR based on [PaddleOCR](https://github.com/PADDLEPADDLE/PADDLEOCR) and [Hezar](https://github.com/hezarai/hezar) trained on synthetic datasets, capable of detecting and recognizing Persian text in noisy, scenic, and real-world environmental images.
+**Tablo Khan** (*Lit. Board Reader*) is a persian OCR based on [PaddleOCR](https://github.com/PADDLEPADDLE/PADDLEOCR) trained on synthetic datasets, capable of detecting and recognizing Persian text in noisy, scenic, and real-world environmental images.
 
 ### Key Features
 - *Tablo Khan* uses [FastAPI](https://github.com/fastapi/fastapi) which gives user a hassle-free experience and ease of use.
-- *Tablo Khan* is a fine-tuned variation of Hezar, one of the best persian text recognition models.
+- *Tablo Khan* is a fine-tuned variation of Paddle, one of the best text detection & recognition models.
 
 
 ## Installing & Preparing TabloKhanOCR
@@ -55,6 +55,8 @@ Using the *Browse...* button on webpage, choose your file(s) which you want to u
 
 Images with added detection boxes will be under `results/images` path. And if you choose "Full OCR" mode, the results will be stored inside a JSON file which can be found inside `results` folder.
 ##
+### Repository Note
+Some folders (`data`, `notebooks`, `scripts`, etc.) are kept for historical reasons and are no longer part of the application's active codebase. They are not required for the application to run.
 
 ### Contact Us
 - Agha Sia: [![Telegram](https://img.shields.io/badge/Telegram-blue?style=flat-square&logo=Telegram&logoColor=white)](https://t.me/itisAGHA_SIA) OR [![E-Mail](https://img.shields.io/badge/E--Mail-red?style=flat-square&logo=Gmail&logoColor=white)](mailto:siyamardaarsalan@gmail.com)
