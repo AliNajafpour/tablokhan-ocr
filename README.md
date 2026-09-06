@@ -1,4 +1,4 @@
-# Tablo Khan (EN / [FA](https://github.com/The-nd/tablokhan-ocr/blob/main/README_fa.md))
+# Tablo Khan (EN / [FA](https://github.com/The-nd/tablokhan-archive/blob/main/README_fa.md))
 
 **Tablo Khan** (*Lit. Board Reader*) is a persian OCR based on [PaddleOCR](https://github.com/PADDLEPADDLE/PADDLEOCR) trained on synthetic datasets, capable of detecting and recognizing Persian text in noisy, scenic, and real-world environmental images.
 
@@ -14,7 +14,7 @@
 - Recommended: NVIDIA GPU with CUDA 12.6+, driver ≥ 560.94 recommended; CPU works too. Note: Most modern NVidia GPUs are compatible, you can check your GPU details using `nvidia-smi` command.
 
 ### Easy start 🚀
-You can simply download and run `StartWindows.bat` or `StartMacLin.sh` (depending on your operating system) file from [RELEASES](https://github.com/The-nd/tablokhan-ocr/releases) and jump to **Usage**.
+You can simply download and run `StartWindows.bat` or `StartMacLin.sh` (depending on your operating system) file from [RELEASES](https://github.com/The-nd/tablokhan-archive/releases) and jump to **Usage**.
 
 If you have a problem with this method, use the Advanced mode written below.
 
