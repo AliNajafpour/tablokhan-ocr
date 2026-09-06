@@ -6,19 +6,13 @@ from paddle.device.cuda import device_count
 
 import numpy as np
 
+from paddle_runtime import gpu_device
+
 
 ROOT = Path(__file__).parent
 MODEL_NAME = "PP-OCRv6_medium_det"
-os.environ.setdefault("PADDLE_PDX_CACHE_HOME", str(ROOT / "tmp" / "paddlex"))
-os.environ.setdefault("PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK", "True")
+_model = None
 
-device = "gpu" if is_compiled_with_cuda() and  device_count() > 0 else "cpu"
-_model = TextDetection(
-    model_name=MODEL_NAME,
-    model_dir=str(ROOT / "models" / "detection" / MODEL_NAME),
-    device=device,
-    enable_mkldnn=False,
-)
 
 def order_quad(points):
     points = np.asarray(points, dtype=np.float32)
@@ -49,6 +43,18 @@ def reading_order(quads):
 
 
 def detect(image):
+    global _model
+    if _model is None:
+        os.environ.setdefault("PADDLE_PDX_CACHE_HOME", str(ROOT / "tmp" / "paddlex"))
+        os.environ.setdefault("PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK", "True")
+        device = gpu_device()
+        from paddleocr import TextDetection
+        _model = TextDetection(
+            model_name=MODEL_NAME,
+            model_dir=str(ROOT / "models" / "detection" / MODEL_NAME),
+            device=device,
+            enable_mkldnn=False,
+        )
 
     result = next(iter(_model.predict(image, batch_size=1))).json["res"]
     quads = [order_quad(box) for box in result["dt_polys"]]

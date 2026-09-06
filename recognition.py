@@ -1,17 +1,15 @@
-import tempfile
-from collections import Counter
 from pathlib import Path
 from hezar.models import Model
 import cv2
 import numpy as np
-import torch
-from PIL import Image
+
+from paddle_runtime import gpu_device
 
 
 ROOT = Path(__file__).parent
-_CANDIDATES = [ROOT / "models" / "recognition" / "default", ROOT / "models" / "recognition"]
-MODEL_PATH = next((p for p in _CANDIDATES if (p / "model_config.yaml").exists()), _CANDIDATES[0])
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+MODEL_NAME = "arabic-train-v1"
+MODEL_DIR = ROOT / "models" / "recognition" / MODEL_NAME
+_model = None
 
 if torch.cuda.is_available():
     torch.cuda.empty_cache()
@@ -20,69 +18,60 @@ model = Model.load(str(MODEL_PATH), load_locally=True)
 def crop(image, quad):
     width = int(max(np.linalg.norm(quad[0] - quad[1]), np.linalg.norm(quad[2] - quad[3]), 8))
     height = int(max(np.linalg.norm(quad[0] - quad[3]), np.linalg.norm(quad[1] - quad[2]), 8))
-    target = np.array([[0, 0], [width - 1, 0], [width - 1, height - 1], [0, height - 1]], dtype=np.float32)
-    output = cv2.warpPerspective(image, cv2.getPerspectiveTransform(quad, target), (width, height))
-    pad = max(1, int(height * 0.16))
-    return cv2.copyMakeBorder(output, pad, pad, pad, pad, cv2.BORDER_REPLICATE)
+    target = np.float32([[0, 0], [width - 1, 0], [width - 1, height - 1], [0, height - 1]])
+    return cv2.warpPerspective(image, cv2.getPerspectiveTransform(quad, target), (width, height))
 
 
-def enhance(image):
-    height, width = image.shape[:2]
-    if height < 36:
-        image = cv2.resize(image, (max(8, int(width * 36 / height)), 36), interpolation=cv2.INTER_CUBIC)
-    lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
-    light, a, b = cv2.split(lab)
-    light = cv2.createCLAHE(2.6, (8, 8)).apply(light)
-    image = cv2.cvtColor(cv2.merge([light, a, b]), cv2.COLOR_LAB2BGR)
-    image = cv2.bilateralFilter(image, 5, 40, 40)
-    return cv2.addWeighted(image, 1.35, cv2.GaussianBlur(image, (0, 0), 1), -0.35, 0)
-
-
-def garbage(text):
-    text = "".join((text or "").split())
-    return len(text) >= 6 and Counter(text).most_common(1)[0][1] / len(text) >= 0.42
-
-
-def binarize(image):
-    gray = cv2.GaussianBlur(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY), (3, 3), 0)
-    output = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 11)
-    return cv2.cvtColor(output if output.mean() >= 127 else 255 - output, cv2.COLOR_GRAY2BGR)
-
-
-def output_text(output):
-    if hasattr(output, "text"):
-        return str(output.text)
-    if isinstance(output, dict):
-        return str(output.get("text") or output.get("label") or "")
-    if isinstance(output, (list, tuple)) and output:
-        return output_text(output[0])
-    return "" if output is None else str(output)
+def load_model():
+    global _model
+    if _model is None:
+        if not (MODEL_DIR / "inference.pdiparams").is_file():
+            raise FileNotFoundError(f"Recognition model is missing: {MODEL_DIR}")
+        device = gpu_device()
+        from paddleocr import TextRecognition
+        _model = TextRecognition(
+            model_name="arabic_PP-OCRv5_mobile_rec",
+            model_dir=str(MODEL_DIR),
+            device=device,
+            enable_mkldnn=False,
+        )
+    return _model
 
 
 def predict(images):
-    with tempfile.TemporaryDirectory() as folder:
-        paths = []
-        for index, image in enumerate(images):
-            path = Path(folder) / f"{index}.png"
-            Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)).save(path)
-            paths.append(str(path))
-        outputs = model.predict(paths, device=str(DEVICE))
-    if not isinstance(outputs, list):
-        outputs = [outputs]
-    if len(outputs) == 1 and isinstance(outputs[0], (list, tuple)):
-        outputs = list(outputs[0])
-    return [output_text(output) for output in outputs]
+    if not images:
+        return []
+    return [
+        (str(result["rec_text"]), float(result["rec_score"]))
+        for output in load_model().predict(images, batch_size=min(16, len(images)))
+        for result in [output.json["res"]]
+    ]
 
 
 def recognize(image, quads):
     if not quads:
         return []
-    images = [enhance(crop(image, quad)) for quad in quads]
-    texts = predict(images)
-    retry = [index for index, text in enumerate(texts) if not text.strip() or garbage(text)]
-    if retry:
-        alternatives = predict([binarize(images[index]) for index in retry])
-        for index, text in zip(retry, alternatives):
-            if text.strip() and not garbage(text):
-                texts[index] = text
-    return texts
+    images = [crop(image, quad) for quad in quads]
+    results = predict(images)
+    retries = [
+        index for index, (piece, (text, confidence)) in enumerate(zip(images, results))
+        if piece.shape[0] / piece.shape[1] >= 2.0
+        and (not text.strip() or confidence < 0.5 and len(text.strip()) <= 1)
+    ]
+    if retries:
+        rotated = [variant for index in retries for variant in (
+            cv2.rotate(images[index], cv2.ROTATE_90_CLOCKWISE),
+            cv2.rotate(images[index], cv2.ROTATE_90_COUNTERCLOCKWISE),
+        )]
+        alternatives = predict(rotated)
+        for offset, index in enumerate(retries):
+            _original_text, original_confidence = results[index]
+            candidates = [
+                result for result in alternatives[offset * 2:offset * 2 + 2]
+                if len(result[0].strip()) >= 3
+                and result[1] >= 0.65
+                and result[1] >= original_confidence + 0.20
+            ]
+            if candidates:
+                results[index] = max(candidates, key=lambda result: result[1])
+    return [text for text, _confidence in results]
