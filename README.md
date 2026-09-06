@@ -1,4 +1,4 @@
-# Tablo Khan (EN / [FA](https://github.com/AliNajafpour/tablokhan-ocr/blob/main/README_fa.md))
+# Tablo Khan (EN / [FA](https://github.com/The-nd/tablokhan-ocr/blob/main/README_fa.md))
 
 **Tablo Khan** (*Lit. Board Reader*) is a persian OCR based on [PaddleOCR](https://github.com/PADDLEPADDLE/PADDLEOCR) trained on synthetic datasets, capable of detecting and recognizing Persian text in noisy, scenic, and real-world environmental images.
 
