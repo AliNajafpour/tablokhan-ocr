@@ -21,8 +21,8 @@
 برای دسترسی به تابلوخوان، با استفاده از دستور های زیر، ریپازیتوری را روی سیستم شخصی خود کلون کنید:
 
 ```
-git clone https://github.com/AliNajafpour/tablokhan-ocr.git
-cd tablokhan-ocr
+git clone https://github.com/The-nd/tablokhan-archive.git
+cd tablokhan-archive
 ```
 ### قدم دوم: آماده سازی و اجرای سرور
 Windows:
