@@ -1,5 +1,5 @@
 from pathlib import Path
-
+from hezar.models import Model
 import cv2
 import numpy as np
 
@@ -11,6 +11,9 @@ MODEL_NAME = "arabic-train-v1"
 MODEL_DIR = ROOT / "models" / "recognition" / MODEL_NAME
 _model = None
 
+if torch.cuda.is_available():
+    torch.cuda.empty_cache()
+model = Model.load(str(MODEL_PATH), load_locally=True)
 
 def crop(image, quad):
     width = int(max(np.linalg.norm(quad[0] - quad[1]), np.linalg.norm(quad[2] - quad[3]), 8))

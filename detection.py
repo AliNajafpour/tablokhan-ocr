@@ -1,5 +1,8 @@
 import os
 from pathlib import Path
+from paddleocr import TextDetection
+from paddle.device import is_compiled_with_cuda
+from paddle.device.cuda import device_count
 
 import numpy as np
 
@@ -24,12 +27,12 @@ def reading_order(quads):
     if not quads:
         return []
     centers = [(float(q[:, 0].mean()), float(q[:, 1].mean())) for q in quads]
-    heights = [max(np.linalg.norm(q[0] - q[3]), np.linalg.norm(q[1] - q[2]), 8) for q in quads]
-    tolerance = max(12, np.median(heights) * 0.65)
+    heights = [max(float(np.linalg.norm(q[0] - q[3])), float(np.linalg.norm(q[1] - q[2])), 8.0) for q in quads]
+    tolerance = max(12.0, float(np.median(heights)) * 0.65)
     lines = []
     for index in sorted(range(len(quads)), key=lambda i: centers[i][1]):
         line = next((line for line in lines
-                     if abs(centers[index][1] - np.mean([centers[i][1] for i in line])) < tolerance), None)
+                    if abs(centers[index][1] - np.mean([centers[i][1] for i in line])) < tolerance), None)
         if line is None:
             lines.append([index])
         else:
@@ -52,6 +55,7 @@ def detect(image):
             device=device,
             enable_mkldnn=False,
         )
+
     result = next(iter(_model.predict(image, batch_size=1))).json["res"]
     quads = [order_quad(box) for box in result["dt_polys"]]
     scores = [float(score) for score in result["dt_scores"]]

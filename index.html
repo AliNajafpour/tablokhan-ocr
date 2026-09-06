@@ -1,43 +1,129 @@
 <!doctype html>
 <html lang="en">
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Persian OCR</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تابلوخوان</title>
 <style>
 *{box-sizing:border-box} body{font:16px Tahoma;max-width:900px;margin:auto;padding:20px;background:#111;color:#eee}
 h1{text-align:center} form,section{background:#1b1b1b;padding:16px;margin:12px 0;border-radius:10px}
-form{display:grid;grid-template-columns:1fr;gap:16px} label{display:grid;gap:8px;min-width:0}
+form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px} label{display:grid;gap:8px;min-width:0}
 .file,.run{grid-column:1/-1} input,button,select{min-height:44px;font:inherit} select{width:100%;padding:8px} button{cursor:pointer}
 select:disabled{opacity:.4} img{display:block;max-width:100%;margin:auto} img:not([src]){display:none} li{margin:7px} .muted{color:#aaa}
+.loading{color:#ffa500;font-weight:bold;animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.done-message{background:#1e3a1e;padding:15px;border-radius:5px;border-left:4px solid #4caf50}
+.done-message a{color:#4caf50;font-weight:bold;text-decoration:none}
+.done-message a:hover{text-decoration:underline}
 @media(max-width:650px){form{grid-template-columns:1fr}.file,.run{grid-column:auto}}
 </style>
-<h1>Persian OCR</h1>
+<h1>تابلوخوان</h1>
 <form id="form">
-  <label class="file" for="file">Image <input id="file" type="file" accept="image/*" required></label>
-  <label for="mode">Mode <select id="mode"><option value="ocr">Full OCR</option><option value="detection">Detection only</option><option value="recognition">Recognition only</option></select></label>
-  <button class="run" type="submit">Run</button>
+  <label class="file" for="file">عکس ها <input id="file" type="file" accept="image/*" multiple required></label>
+  <label for="mode">حالت <select id="mode"><option value="ocr">تشخیص متن کامل</option><option value="detection">فقط تشخیص حدود متن</option></select></label>
+  <button class="run" type="submit">تابلو را بخوان</button>
 </form>
 <section>
   <p id="meta" class="muted"></p>
-  <img id="image" alt="OCR result">
-  <ol id="texts" aria-live="polite"><li dir="auto">Choose an image.</li></ol>
+  <div id="status"></div>
+  <div id="results"></div>
 </section>
 <script>
-const get=id=>document.getElementById(id),form=get("form"),file=get("file"),texts=get("texts"),meta=get("meta"),image=get("image"),mode=get("mode")
+const get=id=>document.getElementById(id),form=get("form"),file=get("file"),results=get("results"),meta=get("meta"),mode=get("mode"),status=get("status")
+
 form.onsubmit=async event=>{
   event.preventDefault()
-  texts.innerHTML='<li dir="auto">Processing…</li>'
+  results.innerHTML=''
+  status.innerHTML='<p class="loading">Loading, please wait...\nIt may take a while</p>'
+  meta.textContent = `Processing ${file.files.length} image(s)...`
+  
   const data=new FormData()
-  data.append("file",file.files[0])
+  for(const f of file.files)data.append("files",f)
   data.append("mode",mode.value)
+
+  let allResults = [];
   try{
     const response=await fetch("/ocr",{method:"POST",body:data})
-    const result=await response.json()
-    if(!response.ok)throw Error(result.detail||response.status)
-    meta.textContent=`${result.mode==="detection"?"boxes":"results"}: ${result.n_boxes} | ${result.elapsed_ms} ms`
-    image.src="data:image/jpeg;base64,"+result.annotated_jpeg_b64
-    texts.innerHTML=result.mode==="detection"?`<li dir="auto">${result.n_boxes} boxes found.</li>`:result.words.map(word=>`<li dir="auto">${word.text||"(empty)"}</li>`).join("")||'<li dir="auto">No text found.</li>'
-  }catch(error){texts.innerHTML=`<li dir="auto">${error}</li>`}
+    allResults=await response.json()
+    if(!response.ok)throw Error(allResults.detail||response.status)
+  }catch(error){
+    allResults=[...file.files].map(f=>({filename:f.name,error:String(error.message||error)}));
+  }
+  
+  // Clear loading and show completion message
+  status.innerHTML = '';
+  meta.textContent = `Processed ${allResults.length} image(s)`;
+  
+  // Show completion message with appropriate link
+  const doneMessage = document.createElement('div');
+  doneMessage.className = 'done-message';
+  doneMessage.style.marginBottom = '20px';
+  
+  if(mode.value === 'detection') {
+    doneMessage.innerHTML = 'Done.';
+  } else {
+    doneMessage.innerHTML = 'Done.';
+  }
+  
+  results.appendChild(doneMessage);
+  
+  // Display all results
+  allResults.forEach((item, index) => {
+    const resultContainer = document.createElement('div');
+    resultContainer.style.marginBottom = '20px';
+    resultContainer.style.padding = '10px';
+    resultContainer.style.border = '1px solid #333';
+    resultContainer.style.borderRadius = '5px';
+    
+    const filename = document.createElement('h3');
+    filename.textContent = `Image ${index + 1}: ${item.filename}`;
+    filename.style.marginTop = '0';
+    resultContainer.appendChild(filename);
+    
+    if(item.error) {
+      const errorMsg = document.createElement('p');
+      errorMsg.textContent = `Error: ${item.error}`;
+      errorMsg.style.color = '#ff6b6b';
+      resultContainer.appendChild(errorMsg);
+    } else {
+      const imgMeta = document.createElement('p');
+      imgMeta.className = 'muted';
+      imgMeta.textContent = `${item.mode==="detection"?"boxes":"results"}: ${item.n_boxes} | ${item.elapsed_ms} ms`;
+      resultContainer.appendChild(imgMeta);
+      
+      if(item.annotated_jpeg_b64) {
+        const img = document.createElement('img');
+        img.src = "data:image/jpeg;base64," + item.annotated_jpeg_b64;
+        img.alt = `OCR result for ${item.filename}`;
+        img.style.maxWidth = '100%';
+        img.style.marginBottom = '10px';
+        resultContainer.appendChild(img);
+      }
+      
+      if(item.mode === "detection") {
+        const boxesInfo = document.createElement('p');
+        boxesInfo.textContent = `${item.n_boxes} boxes found.`;
+        resultContainer.appendChild(boxesInfo);
+      } else {
+        const wordsList = document.createElement('ol');
+        if(item.words && item.words.length > 0) {
+          item.words.forEach(word => {
+            const li = document.createElement('li');
+            li.dir = 'auto';
+            li.textContent = word.text || "(empty)";
+            wordsList.appendChild(li);
+          });
+        } else {
+          const li = document.createElement('li');
+          li.dir = 'auto';
+          li.textContent = 'No text found.';
+          wordsList.appendChild(li);
+        }
+        resultContainer.appendChild(wordsList);
+      }
+    }
+    
+    results.appendChild(resultContainer);
+  });
 }
 </script>
 </html>
