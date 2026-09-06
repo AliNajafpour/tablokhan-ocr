@@ -23,8 +23,8 @@ If you have a problem with this method, use the Advanced mode written below.
 To have access to this repository on your local machine:
 
 ```
-git clone https://github.com/AliNajafpour/tablokhan-ocr.git
-cd tablokhan-ocr
+git clone https://github.com/The-nd/tablokhan-archive.git
+cd tablokhan-archive
 ```
 ### Step 2: Preparing and starting the server
 Windows:
