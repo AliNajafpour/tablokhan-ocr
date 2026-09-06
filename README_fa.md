@@ -1,11 +1,10 @@
 # تابلوخوان ([EN](https://github.com/AliNajafpour/tablokhan-ocr/blob/main/README.md) / FA)
 
-*تابلوخوان* یک مدل تشخیص متن فارسی بر اساس [PaddleOCR](https://github.com/PADDLEPADDLE/PADDLEOCR) و [Hezar](https://github.com/hezarai/hezar) است که بر روی داده های ساختگی آموزش داده شده و قابلیت تشخیص و خواندن متن در تصاویر نویزدار، محیطی و صحنه‌های واقعی را دارد.
+*تابلوخوان* یک مدل تشخیص متن فارسی بر اساس [PaddleOCR](https://github.com/PADDLEPADDLE/PADDLEOCR) است که بر روی داده های ساختگی آموزش داده شده و قابلیت تشخیص و خواندن متن در تصاویر نویزدار، محیطی و صحنه‌های واقعی را دارد.
 
 ### ویژگی های کلیدی
 - *تابلوخوان* از [FastAPI](https://github.com/fastapi/fastapi) استفاده میکند که به کاربر تجربه ای آسان و بدون پیچیدگی برای استفاده از مدل ارائه میدهد.
-- *تابلوخوان* در مرحله تشخیص متن (Detection) از نسخه بهبودیافته (برای نوشته های پارسی) مدل شناخته شده `PP-OCRv6(Medium)` کمک میگیرد.
-- *تابلوخوان* در مرحله بازشناسی متن (Recognition) از نسخه تنظیم شده مدل "هزار" که یک مدل متن باز تشخیص متن پارسی است بهره میگیرد.
+- *تابلوخوان* از نسخه بهبودیافته (برای نوشته های پارسی) مدل های شناخته شده `PP-OCRv6(Medium)` و `Paddle Arabic Fine-tuned V1` کمک میگیرد. 
 
 
 ## نصب و آماده سازی تابلوخوان
@@ -56,7 +55,8 @@ python3 -m uvicorn main:app --host 127.0.0.1 --port 8000
 
 ##
 
-
+### یادداشتی درباره مخزن
+برخی پوشه‌ها (`data`، `notebooks`، `scripts` و غیره) به دلایل تاریخی در مخزن نگه داشته شده‌اند و دیگر بخشی از کد فعال برنامه محسوب نمی‌شوند. این پوشه‌ها برای اجرای برنامه موردنیاز نیستند.
 ### تماس با ما
 - Agha Sia: [![Telegram](https://img.shields.io/badge/Telegram-blue?style=flat-square&logo=Telegram&logoColor=white)](https://t.me/itisAGHA_SIA) OR [![E-Mail](https://img.shields.io/badge/E--Mail-red?style=flat-square&logo=Gmail&logoColor=white)](mailto:siyamardaarsalan@gmail.com)
 
