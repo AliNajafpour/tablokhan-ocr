@@ -14,7 +14,7 @@
 - Recommended: NVIDIA GPU with CUDA 12.6+, driver ≥ 560.94 recommended; CPU works too. Note: Most modern NVidia GPUs are compatible, you can check your GPU details using `nvidia-smi` command.
 
 ### Easy start 🚀
-You can simply download and run `StartWindows.bat` or `StartMacLin.sh` (depending on your operating system) file from [RELEASES](https://github.com/AliNajafpour/tablokhan-ocr/releases) and jump to **Usage**.
+You can simply download and run `StartWindows.bat` or `StartMacLin.sh` (depending on your operating system) file from [RELEASES](https://github.com/The-nd/tablokhan-ocr/releases) and jump to **Usage**.
 
 If you have a problem with this method, use the Advanced mode written below.
 
