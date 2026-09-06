@@ -16,8 +16,4 @@ saved_models/
 exports/
 .ipynb_checkpoints/
 
-notebooks/
-scripts/
-data/
-tests/
 results/
