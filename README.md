@@ -4,7 +4,7 @@
 
 ### Key Features
 - *Tablo Khan* uses [FastAPI](https://github.com/fastapi/fastapi) which gives user a hassle-free experience and ease of use.
-- *Tablo Khan* is a fine-tuned variation of Paddle, one of the best text detection & recognition models.
+- *Tablo Khan* is based on fine-tuned (for Farsi) variations of `PP-OCRv6 (Medium)` and `Paddle Arabic Fine-tuned V1`, two of the well-known text detection & recognition models.
 
 
 ## Installing & Preparing TabloKhanOCR
