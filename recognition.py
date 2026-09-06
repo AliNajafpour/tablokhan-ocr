@@ -1,8 +1,7 @@
 from pathlib import Path
-from hezar.models import Model
 import cv2
 import numpy as np
-
+import torch
 from paddle_runtime import gpu_device
 
 
@@ -13,7 +12,6 @@ _model = None
 
 if torch.cuda.is_available():
     torch.cuda.empty_cache()
-model = Model.load(str(MODEL_PATH), load_locally=True)
 
 def crop(image, quad):
     width = int(max(np.linalg.norm(quad[0] - quad[1]), np.linalg.norm(quad[2] - quad[3]), 8))
@@ -37,13 +35,14 @@ def load_model():
         )
     return _model
 
+model = load_model()
 
-def predict(images):
+def predict(images, model=model):
     if not images:
         return []
     return [
         (str(result["rec_text"]), float(result["rec_score"]))
-        for output in load_model().predict(images, batch_size=min(16, len(images)))
+        for output in model.predict(images, batch_size=min(16, len(images)))
         for result in [output.json["res"]]
     ]
 
