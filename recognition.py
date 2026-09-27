@@ -9,6 +9,10 @@ ROOT = Path(__file__).parent
 MODEL_NAME = "arabic-train-v1"
 MODEL_DIR = ROOT / "models" / "recognition" / MODEL_NAME
 _model = None
+MIN_ROTATION_CONFIDENCE = 0.55
+MIN_ROTATION_GAIN = 0.12
+MIN_ROTATION_TEXT_LENGTH = 3
+SIDEWAYS_ASPECT_RATIO = 1.5
 
 if torch.cuda.is_available():
     torch.cuda.empty_cache()
@@ -47,15 +51,32 @@ def predict(images, model=model):
     ]
 
 
+def _better_orientation(current, candidates):
+    _text, confidence = current
+    acceptable = [
+        candidate for candidate in candidates
+        if len(candidate[0].strip()) >= MIN_ROTATION_TEXT_LENGTH
+        and candidate[1] >= MIN_ROTATION_CONFIDENCE
+        and candidate[1] >= confidence + MIN_ROTATION_GAIN
+    ]
+    return max(acceptable, key=lambda result: result[1]) if acceptable else current
+
+
 def recognize(image, quads):
     if not quads:
         return []
     images = [crop(image, quad) for quad in quads]
     results = predict(images)
+    upside_down = predict([cv2.rotate(piece, cv2.ROTATE_180) for piece in images])
+    results = [
+        _better_orientation(current, [alternative])
+        for current, alternative in zip(results, upside_down)
+    ]
     retries = [
         index for index, (piece, (text, confidence)) in enumerate(zip(images, results))
-        if piece.shape[0] / piece.shape[1] >= 2.0
-        and (not text.strip() or confidence < 0.5 and len(text.strip()) <= 1)
+        if piece.shape[0] / piece.shape[1] >= SIDEWAYS_ASPECT_RATIO
+        or not text.strip()
+        or (confidence < 0.5 and len(text.strip()) <= 1)
     ]
     if retries:
         rotated = [variant for index in retries for variant in (
@@ -64,13 +85,7 @@ def recognize(image, quads):
         )]
         alternatives = predict(rotated)
         for offset, index in enumerate(retries):
-            _original_text, original_confidence = results[index]
-            candidates = [
-                result for result in alternatives[offset * 2:offset * 2 + 2]
-                if len(result[0].strip()) >= 3
-                and result[1] >= 0.65
-                and result[1] >= original_confidence + 0.20
-            ]
-            if candidates:
-                results[index] = max(candidates, key=lambda result: result[1])
+            results[index] = _better_orientation(
+                results[index], alternatives[offset * 2:offset * 2 + 2]
+            )
     return [text for text, _confidence in results]
